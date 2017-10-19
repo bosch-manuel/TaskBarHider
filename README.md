@@ -1,2 +1,2 @@
 # TaskBarHider
-Simply Taskbar hider
+Simple Taskbar hider
