@@ -2,7 +2,8 @@
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.Threading;
+using System.Windows.Forms;
+
 
 namespace TaskbarHide
 {
@@ -22,33 +23,48 @@ namespace TaskbarHide
         private static extern int ShowWindow(IntPtr hwnd, int nCmdShow);
         private delegate bool EnumThreadProc(IntPtr hwnd, IntPtr lParam);
 
+        static Boolean visible = false;
+        static Timer timer;
+
         static void Main(string[] args)
         {
-            Console.WriteLine("Hiding taskbar. Press T to toggle visiblilty ...");
-            ConsoleKey key;
-            Boolean visible = false;
-            Boolean running = true;
+            timer = new Timer();  
+            timer.Interval = 1000;
+            timer.Tick += new EventHandler(OnTick);
+            timer.Start();
 
-            while (running)
-            {
-                if (Console.KeyAvailable)
+            Console.WriteLine("Hiding taskbar");
+            Console.WriteLine("Press ALT + T to toggle visiblilty or ALT + Q to exit ...");
+            ShowTaskbar(visible);
+            var kh = new KeyboardHook(true);
+            kh.KeyDown += Kh_KeyDown;
+            Application.Run();
+        }
+
+        private static void OnTick(Object myObject, EventArgs myEventArgs){
+            ShowTaskbar(visible);
+        }
+
+        private static void Kh_KeyDown(Keys key, bool Shift, bool Ctrl, bool Alt)
+        {
+             if(Alt) {
+                switch (key)
                 {
-                    key = Console.ReadKey(true).Key;
-                    switch (key)
-                    {
-                        case ConsoleKey.Escape:
-                            running = false;
-                            visible = true;
-                            break;
-                        case ConsoleKey.T:
-                            visible = !visible;
-                            break;
-                    }
+                    case Keys.Q:
+                        ShowTaskbar(true);
+                        Application.Exit();
+                        break;
+                    case Keys.T:
+                        visible = !visible;
+                        if(visible) {
+                            timer.Stop();
+                        }else {
+                            timer.Start(); 
+                        }
+                        ShowTaskbar(visible);  
+                    break;
                 }
-
-                ShowTaskbar(visible);
             }
-
         }
 
         private static void ShowTaskbar(bool show)
