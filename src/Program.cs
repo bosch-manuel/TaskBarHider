@@ -25,20 +25,25 @@ namespace TaskbarHide
 
         static Boolean visible = false;
         static Timer timer;
+        //we only want to have one instance of this app > copied from http://sanity-free.org/143/csharp_dotnet_single_instance_application.html
+        static System.Threading.Mutex mutex = new System.Threading.Mutex(true, "{8F6F0AC4-B9A1-45fd-A8CF-72F04E6BDE8F}");
 
         static void Main(string[] args)
-        {
-            timer = new Timer();  
-            timer.Interval = 1000;
-            timer.Tick += new EventHandler(OnTick);
-            timer.Start();
+        {   
+            if(mutex.WaitOne(TimeSpan.Zero, true)) {
+                timer = new Timer();  
+                timer.Interval = 1000;
+                timer.Tick += new EventHandler(OnTick);
+                timer.Start();
 
-            Console.WriteLine("Hiding taskbar");
-            Console.WriteLine("Press ALT + T to toggle visiblilty or ALT + Q to exit ...");
-            ShowTaskbar(visible);
-            var kh = new KeyboardHook(true);
-            kh.KeyDown += Kh_KeyDown;
-            Application.Run();
+                Console.WriteLine("Hiding taskbar");
+                Console.WriteLine("Press ALT + T to toggle visiblilty or ALT + Q to exit ...");
+                ShowTaskbar(visible);
+                var kh = new KeyboardHook(true);
+                kh.KeyDown += Kh_KeyDown;
+                Application.Run();
+                mutex.ReleaseMutex();
+            }            
         }
 
         private static void OnTick(Object myObject, EventArgs myEventArgs){
